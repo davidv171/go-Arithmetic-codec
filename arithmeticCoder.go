@@ -28,7 +28,7 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 	for i := 0; i < len(data); i++ {
 		currentByte := data[i]
 		//If the current symbol we're looking at is not already present, means we have a unique symbol
-		//TODO: try to optimize this to create a lowTable and highTable out of a single loop
+		//Cannot be optimized into a single loop because changing every symbol's high means we'd have to reiterate and recalculate for each new change
 		if arithmeticCoder.frequencyTable[currentByte] == 0 {
 			fmt.Print(" ", currentByte, " ")
 			arithmeticCoder.numberOfUniqueSymbols++
