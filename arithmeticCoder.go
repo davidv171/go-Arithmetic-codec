@@ -16,20 +16,20 @@ Because we are reading files with a buffer who isn't large enough usually and ge
 type ArithmeticCoder struct {
 	frequencyTable []uint32
 	//Table of highs and low, for easier calculations and access, we will be writing the highTable on disk
-	highTable []uint32
-	lowTable  []uint32
+	highTable []uint64
+	lowTable  []uint64
 	//Table that keeps track of the order that the bytes have shown up
 	readByteSequence []uint8
 	//Number of unique symbols in the frequency array, needed for algorithm calculations
 	numberOfUniqueSymbols uint8
 	//The upper limit of the thing
-	upperLimit uint32
+	upperLimit uint64
 	//Number of all symbols, counting repeated symbols, used to calculate the step
-	numberOfSymbols uint32
-	high            uint32
-	low             uint32
-	step            uint32
-	quarters        []uint32
+	numberOfSymbols uint64
+	high            uint64
+	low             uint64
+	step            uint64
+	quarters        []uint64
 	e3_counter      uint32
 }
 
@@ -72,8 +72,8 @@ func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
 		//We ignore 0 frequencies
 		highTableEntry := prevHigh + currSymbolFrequency
 		lowTableEntry := prevHigh
-		arithmeticCoder.highTable[currSymbol] = highTableEntry
-		arithmeticCoder.lowTable[currSymbol] = lowTableEntry
+		arithmeticCoder.highTable[currSymbol] = uint64(highTableEntry)
+		arithmeticCoder.lowTable[currSymbol] = uint64(lowTableEntry)
 		if currSymbolFrequency != 0 {
 			prevHigh = highTableEntry
 
@@ -83,9 +83,9 @@ func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
 
 //Takes a number and sets up quarters from it
 //An array of quarters is then used for algorithm calculation of border changes
-func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint32) {
+func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint64) {
 	for i := 0; i < 4; i++ {
-		arithmeticCoder.quarters[i] = ((upperLimit + 1) / 4) * uint32(i+1)
+		arithmeticCoder.quarters[i] = ((upperLimit + 1) / 4) * uint64(i+1)
 	}
 
 }
@@ -113,8 +113,8 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 	quarters := arithmeticCoder.quarters
 	step := arithmeticCoder.step
 	e3_counter := arithmeticCoder.e3_counter
-	var i uint32 = 0
-	for ; i < arithmeticCoder.numberOfSymbols; i++ {
+	var i uint64 = 0
+	for ; i < uint64(len(data)); i++ {
 		step = (high - low + 1) / arithmeticCoder.numberOfSymbols
 		high = low + step*arithmeticCoder.highTable[data[i]] - 1
 		low = low + step*arithmeticCoder.lowTable[data[i]]
@@ -139,7 +139,6 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				e3_counter = 0
 			}
 		}
-		fmt.Println("")
 		for (quarters[0] <= low) && (high < quarters[2]) {
 			if low >= quarters[0] {
 				low = 2 * (low - quarters[0])
@@ -147,6 +146,7 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				e3_counter++
 			}
 		}
+		fmt.Println("")
 	}
 	arithmeticCoder.high = high
 	arithmeticCoder.low = low
