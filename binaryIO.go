@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func readBinaryFile(filepath string, operation string) {
+func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation string, modelCreation bool) {
 	file, err := os.Open(filepath)
 	defer file.Close()
 	fileInfo, err := file.Stat()
@@ -25,20 +25,13 @@ func readBinaryFile(filepath string, operation string) {
 	var bufferOverflow int64 = 0
 	//Data where we put the read bytes into
 	data := make([]byte, bufferSize)
-	//Empty frequency table, initialized once per all buffer overflows
-	frequencyTable := make([]uint32, 256)
-	lowTable := make([]uint32, 256)
-	highTable := make([]uint32, 256)
-	readSequence := make([]uint8, 256)
-	var upperLimit uint32 = 4294967295
-	//Initialize an arithmetic codec with empty values except for the upper limit, which has the value of 2^32-1
-	arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable, readSequence, 0, upperLimit}
 	for {
 		//Loop through the file, retrieve the bytes as integers
 		//:cap(data) = capacity of array, how many elements it can take before it has to resize
 		//Init slice
 		data = data[:cap(data)]
 		//Byte in the file
+
 		readByte, err := file.Read(data)
 		if err != nil {
 			if err == io.EOF {
@@ -55,14 +48,33 @@ func readBinaryFile(filepath string, operation string) {
 		//bits = append(bits,byteToBitSlice(&aByte)...)
 		//}
 		if operation == "c" {
-			arithmeticCoder.frequencyTableGenerator(data)
+			if modelCreation {
+				arithmeticCoder.frequencyTableGenerator(data)
+			} else {
+				arithmeticCoder.intervalCalculation(data)
+			}
 		}
 		bufferOverflow += bufferSize
 		//So we're aware of indexes if the file is larger
 	}
-	fmt.Println("\nUNIQUE : ", arithmeticCoder.numberOfUniqueSymbols)
-	fmt.Print("\nFrequences : ", arithmeticCoder.frequencyTable)
-	fmt.Print("\nHigh table : ", arithmeticCoder.highTable, "\n", len(arithmeticCoder.highTable), "\n")
+	/*After we are done encoding the values byte by byte, we look at the rest:
+	- if low < firstQuarter : output 01 and E3_COUNTER times bit 1
+	- else : output 10 and E3_COUNTER times bit 0
+	*/
+	if !modelCreation {
+		fmt.Println("The rest:")
+		if arithmeticCoder.low < arithmeticCoder.quarters[0] {
+			fmt.Print("\n01 ")
+			for i := 0; uint32(i) < arithmeticCoder.e3_counter; i++ {
+				fmt.Print("1")
+			}
+		} else {
+			for i := 0; uint32(i) < arithmeticCoder.e3_counter; i++ {
+				fmt.Print("0")
+			}
+		}
+		fmt.Println("")
+	}
 
 }
 func writeBinaryFile(fileName string, bytesToWrite *[]byte, bufferOverflow int64) {

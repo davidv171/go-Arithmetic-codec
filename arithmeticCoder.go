@@ -2,6 +2,15 @@ package main
 
 import "fmt"
 
+/*
+1. Calculate the frequency table
+2. Calculate the symbol high table using that
+3. Initialize the algorithm with dividing the interval into 4 quarters
+4. Code symbols as they come(left to right when reading)
+    - Calculate new borders on each loop, changing up the interval leves
+    - Check errors, and based on those errors output certain bits
+Because we are reading files with a buffer who isn't large enough usually and gets filled up, we need data persistence between iterations through the buffer
+*/
 //Arithmetic coder struct, containing the 1D frequency table , which contains the amount of times each unique symbol repeated
 //There will only be one of these used, so we'd probably not need a reflection?
 type ArithmeticCoder struct {
@@ -15,6 +24,13 @@ type ArithmeticCoder struct {
 	numberOfUniqueSymbols uint8
 	//The upper limit of the thing
 	upperLimit uint32
+	//Number of all symbols, counting repeated symbols, used to calculate the step
+	numberOfSymbols uint32
+	high            uint32
+	low             uint32
+	step            uint32
+	quarters        []uint32
+	e3_counter      uint32
 }
 
 //Increment the frequency table at a certain index
@@ -29,30 +45,112 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 		currentByte := data[i]
 		//If the current symbol we're looking at is not already present, means we have a unique symbol
 		//Cannot be optimized into a single loop because changing every symbol's high means we'd have to reiterate and recalculate for each new change
+		//Makes sure we're not throwing in new data on buffer overflows as well
 		if arithmeticCoder.frequencyTable[currentByte] == 0 {
 			fmt.Print(" ", currentByte, " ")
 			arithmeticCoder.numberOfUniqueSymbols++
 			arithmeticCoder.readByteSequence[lastIndex] = currentByte
 			lastIndex++
 		}
+		arithmeticCoder.numberOfSymbols++
 		arithmeticCoder.frequencyTable[currentByte]++
 	}
 	fmt.Print("\n")
-
 	arithmeticCoder.generateHighTable()
 }
+
+//Generate a table of highs for each symbol
+//Needs a helper array to keep track of which symbols appeared first in a left-to-right order
 func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
 	var prevHigh uint32 = 0
+	//Highest amount the iterator can reach is 255, which is the max amount of unique symbols
+	//To save a few iterations, we keep the number of unique symbols
 	var i uint8 = 0
 	for i = 0; i < arithmeticCoder.numberOfUniqueSymbols; i++ {
 		currSymbol := arithmeticCoder.readByteSequence[i]
 		currSymbolFrequency := arithmeticCoder.frequencyTable[currSymbol]
 		//We ignore 0 frequencies
 		highTableEntry := prevHigh + currSymbolFrequency
+		lowTableEntry := prevHigh
 		arithmeticCoder.highTable[currSymbol] = highTableEntry
+		arithmeticCoder.lowTable[currSymbol] = lowTableEntry
 		if currSymbolFrequency != 0 {
-			prevHigh = arithmeticCoder.highTable[currSymbol]
+			prevHigh = highTableEntry
 
 		}
 	}
+}
+
+//Takes a number and sets up quarters from it
+//An array of quarters is then used for algorithm calculation of border changes
+func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint32) {
+	for i := 0; i < 4; i++ {
+		arithmeticCoder.quarters[i] = ((upperLimit + 1) / 4) * uint32(i+1)
+	}
+
+}
+
+/*
+We use the same file
+Calculate the intervals on each run based on the read bytes:
+    - step = roundDown(high - low + 1)/n
+    - high = low + step * high(symbol) - 1
+    - low = low + step * low(symbol)
+    n = number of all unique symbols
+Based on those, we calculate the errors(E1/E2 and or E3)
+- E1: (high < 2ndQuarter) -> low = low * 2, high = high * 2 + 1	OUTPUT: 0 and E3_COUNTER times 1, set E3_COUNTER = 0
+- E2: (low >= 2ndQuarter) -> low = 2(*low - 2ndQuarter) , high = 2*(high - 2ndQuarter) + 1, OUTPUT: 1 and E3_COUNTER times 0, set E3_COUNTER = 0
+- E3: (low >= firstQuarter && high < 3rdQuarter) -> low = 2*(low - 1stQuarter) , high = 2*(high - 1stQuarter) + 1 ... E3_COUNTER++
+Every error check gets repeated:
+- E1 and E2: while(( high < 2ndQuarter) || low >= 2ndQuarter)
+- E3: while(firstQuarter <= low) && (high < i3rdQuarter)
+If E1 was calculated, then E2 cannot be, E3 can be calculated no matter the previous error detected
+*/
+
+func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
+	high := arithmeticCoder.high
+	low := arithmeticCoder.low
+	quarters := arithmeticCoder.quarters
+	step := arithmeticCoder.step
+	e3_counter := arithmeticCoder.e3_counter
+	var i uint32 = 0
+	for ; i < arithmeticCoder.numberOfSymbols; i++ {
+		step = (high - low + 1) / arithmeticCoder.numberOfSymbols
+		high = low + step*arithmeticCoder.highTable[data[i]] - 1
+		low = low + step*arithmeticCoder.lowTable[data[i]]
+		for (high < quarters[1]) || (low >= quarters[1]) {
+			if high < quarters[1] {
+				low = low * 2
+				high = high*2 + 1
+				var j uint32
+				fmt.Print("0")
+				for j = 0; j < e3_counter; j++ {
+					fmt.Print("1 ")
+				}
+				e3_counter = 0
+			} else if low >= quarters[1] {
+				low = 2 * (low - quarters[1])
+				high = 2*(high-quarters[1]) + 1
+				fmt.Print("1")
+				var j uint32
+				for j = 0; j < e3_counter; j++ {
+					fmt.Print("0 ")
+				}
+				e3_counter = 0
+			}
+		}
+		fmt.Println("")
+		for (quarters[0] <= low) && (high < quarters[2]) {
+			if low >= quarters[0] {
+				low = 2 * (low - quarters[0])
+				high = 2*(high-quarters[0]) + 1
+				e3_counter++
+			}
+		}
+	}
+	arithmeticCoder.high = high
+	arithmeticCoder.low = low
+	arithmeticCoder.step = step
+	arithmeticCoder.e3_counter = e3_counter
+
 }
