@@ -65,16 +65,13 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 		//fmt.Println("The rest:")
 		if arithmeticCoder.low < arithmeticCoder.quarters[0] {
 			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false, true)
-			arithmeticCoder.writtenSize++
 			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
 				arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true)
-				arithmeticCoder.writtenSize++
 			}
 		} else {
 			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true, false)
 
 			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
-				arithmeticCoder.writtenSize++
 				arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false)
 			}
 		}

@@ -31,7 +31,6 @@ type ArithmeticCoder struct {
 	e3Counter       uint32
 	outputBits      []bool
 	//How many bits we're going to write, later used to avoid append functions when writing into file
-	writtenSize uint32
 }
 
 //Increment the frequency table at a certain index
@@ -84,7 +83,7 @@ func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
 //An array of quarters is then used for algorithm calculation of border changes
 func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint32) {
 	for i := 0; i < 3; i++ {
-		//TODO: turn to uint64 then back
+		// turn to uint64 then back
 		upperLimitConverted := uint64(upperLimit)
 		arithmeticCoder.quarters[i] = uint32(((upperLimitConverted + 1) / 4) * uint64(i+1))
 	}
@@ -128,11 +127,9 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				high = high*2 + 1
 				var j uint32
 				//fmt.Print("0")
-				arithmeticCoder.writtenSize++
 				outputBits = append(outputBits, false)
 				for j = 0; j < e3Counter; j++ {
 					//fmt.Print("1 ")
-					arithmeticCoder.writtenSize++
 					outputBits = append(outputBits, true)
 				}
 				e3Counter = 0
@@ -140,12 +137,10 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				low = 2 * (low - quarters[1])
 				high = 2*(high-quarters[1]) + 1
 				//fmt.Print("1")
-				arithmeticCoder.writtenSize++
 				outputBits = append(outputBits, true)
 				var j uint32
 				for j = 0; j < e3Counter; j++ {
 					//fmt.Print("0 ")
-					arithmeticCoder.writtenSize++
 					outputBits = append(outputBits, false)
 
 				}
