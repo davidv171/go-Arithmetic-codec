@@ -26,7 +26,7 @@ func main() {
 		quarters := make([]uint64, 4)
 		//A series of 0(false) and 1(true) that is then written into bytes and written into the binary compressed file
 		//TODO: turn this into output byte array
-		outputBits := make([]uint8, 0)
+		outputBits := make([]bool, 0)
 		var upperLimit uint64 = 4294967295
 		//Initialize an arithmetic codec with empty values except for the upper limit, which has the value of 2^32-1
 		//After creating the model is done, we go on to interval creation

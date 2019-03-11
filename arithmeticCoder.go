@@ -29,7 +29,7 @@ type ArithmeticCoder struct {
 	step            uint64
 	quarters        []uint64
 	e3Counter       uint32
-	outputBytes     []uint8
+	outputBits      []bool
 	//How many bits we're going to write, later used to avoid append functions when writing into file
 	writtenSize uint32
 }
@@ -112,7 +112,6 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 	quarters := arithmeticCoder.quarters
 	step := arithmeticCoder.step
 	e3Counter := arithmeticCoder.e3Counter
-	outputBytes := arithmeticCoder.outputBytes
 	outputBits := make([]bool, 0)
 	var i uint64 = 0
 	for ; i < uint64(len(data)); i++ {
@@ -156,17 +155,11 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				e3Counter++
 			}
 		}
-		//fmt.Println("")
-		//For each 8 bits ready to be written, turn into a byte
-		if arithmeticCoder.writtenSize%8 == 0 {
-			outputBytes = append(outputBytes, bitSliceToByte(&outputBits))
-			outputBits = nil
-		}
+
 	}
 	arithmeticCoder.high = high
 	arithmeticCoder.low = low
 	arithmeticCoder.step = step
 	arithmeticCoder.e3Counter = e3Counter
-	arithmeticCoder.outputBytes = outputBytes
-
+	arithmeticCoder.outputBits = outputBits
 }
