@@ -83,14 +83,14 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 			}
 		}
 		fmt.Println("")
-	}
-	//Turn the output bits into bytes
-	fmt.Println("END OF THING SIZE ", len(arithmeticCoder.outputBits), arithmeticCoder.outputBits)
-	for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
-		//tempSlice := arithmeticCoder.outputBits[i: i + 8]
-		//outputBytes := bitSliceToByte(&tempSlice)
-		//fmt.Println(outputBytes)
-
+		//Turn the output bits into bytes
+		fmt.Println("END OF THING SIZE ", len(arithmeticCoder.outputBits), arithmeticCoder.outputBits)
+		var outputBytes []byte
+		for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
+			tempSlice := arithmeticCoder.outputBits[i : i+8]
+			outputBytes = append(outputBytes, bitSliceToByte(&tempSlice))
+		}
+		writeBinaryFile("out", &outputBytes, 0)
 	}
 
 }
