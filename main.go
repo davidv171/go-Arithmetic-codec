@@ -8,7 +8,7 @@ import (
 func main() {
 	/*1. read the file
 	2. calculate the output stream using the arithmetic codec algorithm
-	TODO: Frequency table, that is basically a 1D table, index is the value,
+	 Frequency table, that is basically a 1D table, index is the value,
 
 	*/
 	operation := os.Args[1]
@@ -24,10 +24,13 @@ func main() {
 		highTable := make([]uint64, 256)
 		readSequence := make([]uint8, 256)
 		quarters := make([]uint64, 4)
+		//A series of 0(false) and 1(true) that is then written into bytes and written into the binary compressed file
+		//TODO: turn this into output byte array
+		outputBits := make([]uint8, 0)
 		var upperLimit uint64 = 4294967295
 		//Initialize an arithmetic codec with empty values except for the upper limit, which has the value of 2^32-1
 		//After creating the model is done, we go on to interval creation
-		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable, readSequence, 0, upperLimit, 0, upperLimit, 0, 0, quarters, 0}
+		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable, readSequence, 0, upperLimit, 0, upperLimit, 0, 0, quarters, 0, outputBits, 0}
 		arithmeticCoder.quarterize(upperLimit)
 		readBinaryFile(arithmeticCoder, inputFile, operation, true)
 		readBinaryFile(arithmeticCoder, inputFile, operation, false)

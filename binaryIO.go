@@ -62,18 +62,21 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	- else : output 10 and E3_COUNTER times bit 0
 	*/
 	if !modelCreation {
-		fmt.Println("The rest:")
+		//fmt.Println("The rest:")
 		if arithmeticCoder.low < arithmeticCoder.quarters[0] {
-			fmt.Print("\n01 ")
-			for i := 0; uint32(i) < arithmeticCoder.e3_counter; i++ {
-				fmt.Print("1")
+			//fmt.Print("\n01 ")
+			arithmeticCoder.writtenSize++
+			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
+				//fmt.Print("1")
+				arithmeticCoder.writtenSize++
 			}
 		} else {
-			for i := 0; uint32(i) < arithmeticCoder.e3_counter; i++ {
-				fmt.Print("0")
+			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
+				arithmeticCoder.writtenSize++
+				//fmt.Print("0")
 			}
 		}
-		fmt.Println("")
+		//fmt.Println("")
 	}
 
 }

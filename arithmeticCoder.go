@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 /*
 1. Calculate the frequency table
 2. Calculate the symbol high table using that
@@ -30,7 +28,10 @@ type ArithmeticCoder struct {
 	low             uint64
 	step            uint64
 	quarters        []uint64
-	e3_counter      uint32
+	e3Counter       uint32
+	outputBytes     []uint8
+	//How many bits we're going to write, later used to avoid append functions when writing into file
+	writtenSize uint32
 }
 
 //Increment the frequency table at a certain index
@@ -47,7 +48,6 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 		//Cannot be optimized into a single loop because changing every symbol's high means we'd have to reiterate and recalculate for each new change
 		//Makes sure we're not throwing in new data on buffer overflows as well
 		if arithmeticCoder.frequencyTable[currentByte] == 0 {
-			fmt.Print(" ", currentByte, " ")
 			arithmeticCoder.numberOfUniqueSymbols++
 			arithmeticCoder.readByteSequence[lastIndex] = currentByte
 			lastIndex++
@@ -55,7 +55,6 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 		arithmeticCoder.numberOfSymbols++
 		arithmeticCoder.frequencyTable[currentByte]++
 	}
-	fmt.Print("\n")
 	arithmeticCoder.generateHighTable()
 }
 
@@ -112,7 +111,9 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 	low := arithmeticCoder.low
 	quarters := arithmeticCoder.quarters
 	step := arithmeticCoder.step
-	e3_counter := arithmeticCoder.e3_counter
+	e3Counter := arithmeticCoder.e3Counter
+	outputBytes := arithmeticCoder.outputBytes
+	outputBits := make([]bool, 0)
 	var i uint64 = 0
 	for ; i < uint64(len(data)); i++ {
 		step = (high - low + 1) / arithmeticCoder.numberOfSymbols
@@ -123,34 +124,49 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				low = low * 2
 				high = high*2 + 1
 				var j uint32
-				fmt.Print("0")
-				for j = 0; j < e3_counter; j++ {
-					fmt.Print("1 ")
+				//fmt.Print("0")
+				arithmeticCoder.writtenSize++
+				outputBits = append(outputBits, false)
+				for j = 0; j < e3Counter; j++ {
+					//fmt.Print("1 ")
+					arithmeticCoder.writtenSize++
+					outputBits = append(outputBits, true)
 				}
-				e3_counter = 0
+				e3Counter = 0
 			} else if low >= quarters[1] {
 				low = 2 * (low - quarters[1])
 				high = 2*(high-quarters[1]) + 1
-				fmt.Print("1")
+				//fmt.Print("1")
+				arithmeticCoder.writtenSize++
+				outputBits = append(outputBits, true)
 				var j uint32
-				for j = 0; j < e3_counter; j++ {
-					fmt.Print("0 ")
+				for j = 0; j < e3Counter; j++ {
+					//fmt.Print("0 ")
+					arithmeticCoder.writtenSize++
+					outputBits = append(outputBits, false)
+
 				}
-				e3_counter = 0
+				e3Counter = 0
 			}
 		}
 		for (quarters[0] <= low) && (high < quarters[2]) {
 			if low >= quarters[0] {
 				low = 2 * (low - quarters[0])
 				high = 2*(high-quarters[0]) + 1
-				e3_counter++
+				e3Counter++
 			}
 		}
-		fmt.Println("")
+		//fmt.Println("")
+		//For each 8 bits ready to be written, turn into a byte
+		if arithmeticCoder.writtenSize%8 == 0 {
+			outputBytes = append(outputBytes, bitSliceToByte(&outputBits))
+			outputBits = nil
+		}
 	}
 	arithmeticCoder.high = high
 	arithmeticCoder.low = low
 	arithmeticCoder.step = step
-	arithmeticCoder.e3_counter = e3_counter
+	arithmeticCoder.e3Counter = e3Counter
+	arithmeticCoder.outputBytes = outputBytes
 
 }

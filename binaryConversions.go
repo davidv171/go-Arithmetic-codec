@@ -31,10 +31,11 @@ func byteToBitSlice(byteSlice *uint8) []bool {
 	}
 	return bits
 }
+
+//Takes a 8 sized bool slice and turns it into a single byte
 func bitSliceToByte(bitSlice *[]bool) byte {
 	var i uint8 = 0
 	var resultingByte byte
-
 	for i = 0; i < uint8(len(*bitSlice)); i++ {
 		if (*bitSlice)[i] {
 			resultingByte |= 1 << (7 - i)
