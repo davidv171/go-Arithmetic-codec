@@ -34,8 +34,9 @@ func main() {
 		//After creating the model is done, we go on to interval creation
 		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable, readSequence, 0, upperLimit, 0, upperLimit, 0, 0, quarters, 0, outputBits}
 		arithmeticCoder.quarterize(upperLimit)
-		readBinaryFile(arithmeticCoder, inputFile, operation, true)
-		readBinaryFile(arithmeticCoder, inputFile, operation, false)
+		//The last argument is for the arithmetic decoder, whenever we are not decoding, it's nil
+		readBinaryFile(arithmeticCoder, inputFile, operation, true, nil)
+		readBinaryFile(arithmeticCoder, inputFile, operation, false, nil)
 		fmt.Print("Ouputting to... ", outputFile)
 		//Decomepression, read compressed file, deconstruct the symbols based off of it
 	} else if operation == "d" {

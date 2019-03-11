@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation string, modelCreation bool) {
+func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation string, modelCreation bool, arithmeticDecoder *ArithmeticDecoder) {
 	file, err := os.Open(filepath)
 	defer file.Close()
 	fileInfo, err := file.Stat()
@@ -14,9 +14,6 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	fileSize := fileInfo.Size()
 	fmt.Print("File size is ")
 	fmt.Print(fileSize, "\n")
-	//Make sure the search slice fits, this will be our b
-	//
-	//uffer
 	var bufferSize int64
 	bufferSize = 4096
 	if fileSize < bufferSize {
@@ -62,45 +59,9 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	- else : output 10 and E3_COUNTER times bit 0
 	*/
 	if !modelCreation {
+		writeEncoded(arithmeticCoder)
 		//fmt.Println("The rest:")
-		if arithmeticCoder.low < arithmeticCoder.quarters[0] {
-			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false, true)
-			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
-				arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true)
-			}
-		} else {
-			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true, false)
 
-			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
-				arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false)
-			}
-		}
-		fmt.Println("")
-		//Write the 32uint[256] high table into file
-		//If the value in high table is 0,
-		// we can just write 4 0 bytes into the table, this saves us some time when doing compression on a small amount of unique symbols
-		outputBytes := make([]byte, 0)
-		for i := 0; i < 256; i++ {
-			currentElement := arithmeticCoder.highTable[i]
-			if currentElement != 0 {
-				tempSlice := byteToBitSlice(currentElement, 32)
-				outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 4)...)
-
-			} else {
-				outputBytes = append(outputBytes, 0, 0, 0, 0)
-			}
-
-		}
-		fmt.Println("\nHIGH TABLE SIZE", len(outputBytes))
-
-		//Turn the output bits into bytes
-		fmt.Println("END OF THING SIZE ", len(arithmeticCoder.outputBits))
-		for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
-			tempSlice := arithmeticCoder.outputBits[i : i+8]
-			outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
-		}
-		fmt.Println("Written size", len(outputBytes))
-		writeBinaryFile("out", &outputBytes, 0)
 	}
 
 }
@@ -115,4 +76,44 @@ func writeBinaryFile(fileName string, bytesToWrite *[]byte, bufferOverflow int64
 	_, err = file.WriteAt(*bytesToWrite, bufferOverflow)
 	errCheck(err)
 	os.Exit(0)
+}
+func writeEncoded(arithmeticCoder *ArithmeticCoder) {
+	if arithmeticCoder.low < arithmeticCoder.quarters[0] {
+		arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false, true)
+		for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
+			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true)
+		}
+	} else {
+		arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true, false)
+
+		for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
+			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false)
+		}
+	}
+	fmt.Println("")
+	//Write the 32uint[256] high table into file
+	//If the value in high table is 0,
+	// we can just write 4 0 bytes into the table, this saves us some time when doing compression on a small amount of unique symbols
+	outputBytes := make([]byte, 0)
+	//TODO: decide on number of written bytes based on the highest value
+	for i := 0; i < 256; i++ {
+		currentElement := arithmeticCoder.highTable[i]
+		if currentElement != 0 {
+			tempSlice := byteToBitSlice(currentElement, 32)
+			outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 4)...)
+
+		} else {
+			outputBytes = append(outputBytes, 0, 0, 0, 0)
+		}
+
+	}
+	fmt.Println("\nHIGH TABLE SIZE", len(outputBytes))
+	//Turn the output bits into bytes
+	fmt.Println("END OF THING SIZE ", len(arithmeticCoder.outputBits))
+	for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
+		tempSlice := arithmeticCoder.outputBits[i : i+8]
+		outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
+	}
+	fmt.Println("Written size", len(outputBytes))
+	writeBinaryFile("out", &outputBytes, 0)
 }
