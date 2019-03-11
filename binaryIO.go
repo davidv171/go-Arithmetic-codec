@@ -50,6 +50,9 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 			} else {
 				arithmeticCoder.intervalCalculation(data)
 			}
+		} else if operation == "d" {
+			arithmeticDecoder.readFreqTable(data)
+
 		}
 		bufferOverflow += bufferSize
 		//So we're aware of indexes if the file is larger
@@ -58,7 +61,7 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	- if low < firstQuarter : output 01 and E3_COUNTER times bit 1
 	- else : output 10 and E3_COUNTER times bit 0
 	*/
-	if !modelCreation {
+	if !modelCreation && arithmeticCoder != nil {
 		writeEncoded(arithmeticCoder)
 		//fmt.Println("The rest:")
 

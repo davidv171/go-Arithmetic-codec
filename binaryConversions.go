@@ -16,16 +16,16 @@ func argumentToBinary(argument string) []bool {
 	}
 	return bits
 }
-func byteToBitSlice(byteSlice uint32, length uint8) []bool {
+func byteToBitSlice(bytes uint32, length uint8) []bool {
 	bits := make([]bool, length)
 	var i uint8
 	//The length of 32 means we're decoding a 32 bit sequence
-	//Loop through the byte and turn it into bit sequence using AND and masking
+	//Loop through the and turn it into bit sequence using AND and masking
 	//Using an unsigned integer, so
 	//7 -> 0
 	for i = 0; i < length; i++ {
-		mask := byte(1 << i)
-		if (byteSlice & uint32(mask)) > 0 {
+		mask := uint8(1 << i)
+		if (bytes & uint32(mask)) > 0 {
 			bits[(length-1)-i] = true
 		} else {
 			bits[(length-1)-i] = false
@@ -36,11 +36,11 @@ func byteToBitSlice(byteSlice uint32, length uint8) []bool {
 	return bits
 }
 
-//Takes a 8 sized bool slice and turns it into a single byte, or 4 bytes if we're converting length
-func bitSliceToByte(bitSlice *[]bool, length uint8) []byte {
+//Takes a length*8 sized bool slice and turns it into a single byte, or 4 bytes if we're converting length
+func bitSliceToByte(bitSlice *[]bool, length uint8) []uint8 {
 	var i uint8 = 0
 	var j uint8 = 0
-	resultingBytes := make([]byte, length)
+	resultingBytes := make([]uint8, length)
 	for i = 0; i < length; i++ {
 		for j = 0; j < 8; j++ {
 			if (*bitSlice)[(i*8)+j] {
@@ -50,4 +50,12 @@ func bitSliceToByte(bitSlice *[]bool, length uint8) []byte {
 	}
 
 	return resultingBytes
+}
+func bytesToUint32(data []uint8) uint32 {
+	var returnValue uint32 = 0
+	returnValue |= uint32(data[3])
+	returnValue |= uint32(data[2]) << 8
+	returnValue |= uint32(data[1]) << 16
+	returnValue |= uint32(data[0]) << 24
+	return returnValue
 }

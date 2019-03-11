@@ -14,6 +14,7 @@ func main() {
 	operation := os.Args[1]
 	inputFile := os.Args[2]
 	outputFile := os.Args[3]
+	var upperLimit uint32 = 4294967295
 	//Compression
 	if operation == "c" {
 		/*
@@ -29,10 +30,11 @@ func main() {
 		//TODO: turn this into output byte array
 		outputBits := make([]bool, 0)
 		//4294967295
-		var upperLimit uint32 = 4294967295
 		//Initialize an arithmetic codec with empty values except for the upper limit, which has the value of 2^32-1
 		//After creating the model is done, we go on to interval creation
-		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable, readSequence, 0, upperLimit, 0, upperLimit, 0, 0, quarters, 0, outputBits}
+		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable,
+			readSequence, 0, upperLimit, 0, upperLimit,
+			0, 0, quarters, 0, outputBits}
 		arithmeticCoder.quarterize(upperLimit)
 		//The last argument is for the arithmetic decoder, whenever we are not decoding, it's nil
 		readBinaryFile(arithmeticCoder, inputFile, operation, true, nil)
@@ -40,6 +42,23 @@ func main() {
 		fmt.Print("Ouputting to... ", outputFile)
 		//Decomepression, read compressed file, deconstruct the symbols based off of it
 	} else if operation == "d" {
-
+		/*	inputBits      []bool
+			highTable []uint32
+			lowTable []uint32
+			symbolInterval uint32
+			step           uint32
+			low            uint32
+			high           uint32
+			output         []byte
+		}*/
+		inputBits := make([]bool, 0)
+		highTable := make([]uint32, 0)
+		lowTable := make([]uint32, 0)
+		var symbolInterval uint32 = 0
+		var step uint32 = 0
+		output := make([]byte, 0)
+		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
+			symbolInterval, step, 0, upperLimit, output}
+		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder)
 	}
 }
