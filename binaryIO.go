@@ -64,23 +64,33 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	if !modelCreation {
 		//fmt.Println("The rest:")
 		if arithmeticCoder.low < arithmeticCoder.quarters[0] {
-			//fmt.Print("\n01 ")
+			fmt.Print("\n01 ")
 			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false, true)
 			arithmeticCoder.writtenSize++
 			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
-				//fmt.Print("1")
+				fmt.Print("1")
 				arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true)
 				arithmeticCoder.writtenSize++
 			}
 		} else {
 			fmt.Println("10")
+			arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, true, false)
+
 			for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
 				arithmeticCoder.writtenSize++
-				//fmt.Print("0")
+				fmt.Print("0")
 				arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false)
 			}
 		}
-		//fmt.Println("")
+		fmt.Println("")
+	}
+	//Turn the output bits into bytes
+	fmt.Println("END OF THING SIZE ", len(arithmeticCoder.outputBits), arithmeticCoder.outputBits)
+	for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
+		//tempSlice := arithmeticCoder.outputBits[i: i + 8]
+		//outputBytes := bitSliceToByte(&tempSlice)
+		//fmt.Println(outputBytes)
+
 	}
 
 }

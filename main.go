@@ -20,14 +20,15 @@ func main() {
 		*/
 		//Empty frequency table, initialized once per all buffer overflows
 		frequencyTable := make([]uint32, 256)
-		lowTable := make([]uint64, 256)
-		highTable := make([]uint64, 256)
+		lowTable := make([]uint32, 256)
+		highTable := make([]uint32, 256)
 		readSequence := make([]uint8, 256)
-		quarters := make([]uint64, 4)
+		quarters := make([]uint32, 4)
 		//A series of 0(false) and 1(true) that is then written into bytes and written into the binary compressed file
 		//TODO: turn this into output byte array
 		outputBits := make([]bool, 0)
-		var upperLimit uint64 = 4294967295
+		//4294967295
+		var upperLimit uint32 = 4294967295
 		//Initialize an arithmetic codec with empty values except for the upper limit, which has the value of 2^32-1
 		//After creating the model is done, we go on to interval creation
 		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable, readSequence, 0, upperLimit, 0, upperLimit, 0, 0, quarters, 0, outputBits, 0}
