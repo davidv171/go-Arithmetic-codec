@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 /*
 1. Calculate the frequency table
 2. Calculate the symbol high table using that
@@ -129,11 +127,11 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				low = low * 2
 				high = high*2 + 1
 				var j uint32
-				fmt.Print("0")
+				//fmt.Print("0")
 				arithmeticCoder.writtenSize++
 				outputBits = append(outputBits, false)
 				for j = 0; j < e3Counter; j++ {
-					fmt.Print("1 ")
+					//fmt.Print("1 ")
 					arithmeticCoder.writtenSize++
 					outputBits = append(outputBits, true)
 				}
@@ -141,12 +139,12 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 			} else if low >= quarters[1] {
 				low = 2 * (low - quarters[1])
 				high = 2*(high-quarters[1]) + 1
-				fmt.Print("1")
+				//fmt.Print("1")
 				arithmeticCoder.writtenSize++
 				outputBits = append(outputBits, true)
 				var j uint32
 				for j = 0; j < e3Counter; j++ {
-					fmt.Print("0 ")
+					//fmt.Print("0 ")
 					arithmeticCoder.writtenSize++
 					outputBits = append(outputBits, false)
 
