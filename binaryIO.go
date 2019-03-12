@@ -16,7 +16,8 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	fmt.Print(fileSize, "\n")
 	var bufferSize int64
 	bufferSize = 4096
-	if fileSize < bufferSize {
+	//YOLO
+	if fileSize < bufferSize || operation == "d" {
 		bufferSize = fileSize
 	}
 	var bufferOverflow int64 = 0
@@ -51,7 +52,6 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 				arithmeticCoder.intervalCalculation(data)
 			}
 		} else if operation == "d" {
-			arithmeticDecoder.numberOfAllSymbols = uint32(fileSize)
 			arithmeticDecoder.readFreqTable(data)
 
 		}

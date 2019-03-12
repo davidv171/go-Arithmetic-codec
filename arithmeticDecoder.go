@@ -34,14 +34,20 @@ func (arithmeticDecoder *ArithmeticDecoder) readFreqTable(data []uint8) {
 		readBytes := data[i-4 : i]
 		convertedInt := bytesToUint32(readBytes)
 		highTable[(i-4)/4] = convertedInt
+
 	}
 	fmt.Println("Read high table", highTable)
 	arithmeticDecoder.highTable = highTable
+	//A temporary variable to avoid ovewriting
 	sortedHighTable := make([]uint32, 256)
 	copy(sortedHighTable, highTable)
 	sort.Slice(sortedHighTable, func(i, j int) bool { return sortedHighTable[i] < sortedHighTable[j] })
+	//The largest high(last one in the sorted array) tells us how many non-unique symbols we have
+	arithmeticDecoder.numberOfAllSymbols = sortedHighTable[255]
+	arithmeticDecoder.step = (arithmeticDecoder.high + 1) / arithmeticDecoder.numberOfAllSymbols
 	arithmeticDecoder.generateLowTable(sortedHighTable)
 	arithmeticDecoder.initializeField(data)
+	arithmeticDecoder.intervalGeneration()
 	fmt.Println("High table ", arithmeticDecoder.highTable)
 	fmt.Println("Low table ", arithmeticDecoder.lowTable)
 	fmt.Println("Read bits ", arithmeticDecoder.inputBits)
@@ -85,12 +91,13 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 	bitSlice := make([]bool, 0)
 	fmt.Println(arithmeticDecoder.numberOfAllSymbols)
 	//Load every bit, that is not in the model(first 256*4 bytes) onwards
-	for i = 256 * 4; i < arithmeticDecoder.numberOfAllSymbols; i++ {
+	for i = 256 * 4; i < uint32(len(data)); i++ {
 		currByte := data[i]
-		fmt.Println("currByte", currByte)
 		bitSlice = append(bitSlice, byteToBitSlice(uint32(currByte), 8)...)
 	}
 	arithmeticDecoder.inputBits = bitSlice
+	//First 7 bits
+	arithmeticDecoder.currentInput = bitSlice[0:7]
 
 }
 
@@ -118,5 +125,34 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 			- field = 2*(field - 1stQuarter) + next bit
 */
 func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
+	firstBits := arithmeticDecoder.currentInput
+	fmt.Println("\nFirst bits\n", firstBits)
+	firstByte := arbitraryBitsToByte(&firstBits)
+	numberOfAllSymbols := arithmeticDecoder.numberOfAllSymbols
+	fmt.Println(firstByte)
+	for i := 256 * 4; uint32(i) < 1024+arithmeticDecoder.numberOfAllSymbols; i++ {
+		low := arithmeticDecoder.low
+		high := arithmeticDecoder.high
+		step := arithmeticDecoder.step
+		currentBits := arithmeticDecoder.currentInput
+		currentByte := arbitraryBitsToByte(&currentBits)
+		symbolInterval := (uint32(currentByte) - low) / step
+		//Calculate the symbol that relates to the symbolInterval
+		symbol := arithmeticDecoder.intervalToSymbol(symbolInterval)
+		step = (high - low + 1) / numberOfAllSymbols
+		high = low + step*arithmeticDecoder.highTable[symbol] - 1
+		fmt.Println("Step", step, " v ", symbolInterval, " symbol: ", symbol, " high ", high, " low ", low)
 
+	}
+}
+
+//Returns the symbol that is represented by an interval numbe
+func (arithmeticDecoder *ArithmeticDecoder) intervalToSymbol(symbolInterval uint32) uint8 {
+	for i := 0; i < 256; i++ {
+		//If the interval is found anywhere
+		if arithmeticDecoder.highTable[i] > symbolInterval && arithmeticDecoder.lowTable[i] <= symbolInterval {
+			return uint8(i)
+		}
+	}
+	return 0
 }

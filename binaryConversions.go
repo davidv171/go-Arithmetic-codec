@@ -36,7 +36,7 @@ func byteToBitSlice(bytes uint32, length uint8) []bool {
 	return bits
 }
 
-//Takes a length*8 sized bool slice and turns it into a single byte, or 4 bytes if we're converting length
+//Takes a length*8 sized bool slice and turns it into a single byte, or 4 bytes if we're converting 32 byte length bitslice
 func bitSliceToByte(bitSlice *[]bool, length uint8) []uint8 {
 	var i uint8 = 0
 	var j uint8 = 0
@@ -51,6 +51,22 @@ func bitSliceToByte(bitSlice *[]bool, length uint8) []uint8 {
 
 	return resultingBytes
 }
+
+//Only for testing purposes, takes 7 bits at a time to generate a byte out of it
+func arbitraryBitsToByte(bitSlice *[]bool) uint8 {
+	var resultingByte uint8 = 0
+	var i uint8 = 0
+	length := len((*bitSlice))
+	for i = 0; i < uint8(length); i++ {
+		if (*bitSlice)[i] {
+			resultingByte |= 1 << ((uint8(length - 1)) - i)
+		}
+	}
+	return resultingByte
+}
+
+//Turn 4 bytes(uint8) into an uint32 by doing bit shifting magic
+//Not done in a loop because it kept messing up for no reason.
 func bytesToUint32(data []uint8) uint32 {
 	var returnValue uint32 = 0
 	returnValue |= uint32(data[3])

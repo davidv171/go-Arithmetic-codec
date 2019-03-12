@@ -56,10 +56,10 @@ func main() {
 		highTable := make([]uint32, 0)
 		lowTable := make([]uint32, 0)
 		var symbolInterval uint32 = 0
-		var step uint32 = 0
 		output := make([]byte, 0)
+		currentInputBits := make([]bool, 0)
 		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
-			symbolInterval, step, 0, upperLimit, output, 0}
+			symbolInterval, 0, 0, upperLimit, output, 0, currentInputBits}
 		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder)
 	}
 }
