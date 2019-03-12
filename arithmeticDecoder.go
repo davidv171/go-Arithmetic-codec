@@ -13,26 +13,24 @@ type ArithmeticDecoder struct {
 		- step,low,high : step, calculation helper used here for data retention
 		- output: the decoded byte array, decompressed file
 	*/
-	inputBits      []bool
-	highTable      []uint32
-	lowTable       []uint32
-	symbolInterval uint32
-	step           uint32
-	low            uint32
-	high           uint32
-	output         []byte
+	inputBits          []bool
+	highTable          []uint32
+	lowTable           []uint32
+	symbolInterval     uint32
+	step               uint32
+	low                uint32
+	high               uint32
+	output             []byte
+	numberOfAllSymbols uint32
 }
 
 //The first 256 32-bit bytes are our frequency table, or rather out HIGH table, containing the high value of each symbol
 func (arithmeticDecoder *ArithmeticDecoder) readFreqTable(data []uint8) {
 	highTable := make([]uint32, 256)
 	for i := 4; i < 256*4; i += 4 {
-		if i%4 == 0 {
-			readBytes := data[i-4 : i]
-			convertedInt := bytesToUint32(readBytes)
-			highTable[(i-4)/4] = convertedInt
-
-		}
+		readBytes := data[i-4 : i]
+		convertedInt := bytesToUint32(readBytes)
+		highTable[(i-4)/4] = convertedInt
 	}
 	fmt.Println("Read high table", highTable)
 	arithmeticDecoder.highTable = highTable
@@ -40,8 +38,10 @@ func (arithmeticDecoder *ArithmeticDecoder) readFreqTable(data []uint8) {
 	copy(sortedHighTable, highTable)
 	sort.Slice(sortedHighTable, func(i, j int) bool { return sortedHighTable[i] < sortedHighTable[j] })
 	arithmeticDecoder.generateLowTable(sortedHighTable)
-	fmt.Println("High table", arithmeticDecoder.highTable)
-	fmt.Println("Low table", arithmeticDecoder.lowTable)
+	arithmeticDecoder.initializeField(data)
+	fmt.Println("High table ", arithmeticDecoder.highTable)
+	fmt.Println("Low table ", arithmeticDecoder.lowTable)
+	fmt.Println("Read bits ", arithmeticDecoder.inputBits)
 	//Sort the array so we can generate low table much easier
 }
 
@@ -73,5 +73,20 @@ func (arithmeticDecoder *ArithmeticDecoder) generateLowTable(sortedHighTable []u
 		}
 	}
 	arithmeticDecoder.lowTable = lowTable
+
+}
+
+//Take the first 7 bits(or 32 bits, depending on the arithmetic coder size)
+func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
+	var i uint32 = 0
+	bitSlice := make([]bool, 0)
+	fmt.Println(arithmeticDecoder.numberOfAllSymbols)
+	//Load every bit, that is not in the model(first 256*4 bytes) onwards
+	for i = 256 * 4; i < arithmeticDecoder.numberOfAllSymbols; i++ {
+		currByte := data[i]
+		fmt.Println("currByte", currByte)
+		bitSlice = append(bitSlice, byteToBitSlice(uint32(currByte), 8)...)
+	}
+	arithmeticDecoder.inputBits = bitSlice
 
 }

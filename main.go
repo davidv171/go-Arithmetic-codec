@@ -14,7 +14,8 @@ func main() {
 	operation := os.Args[1]
 	inputFile := os.Args[2]
 	outputFile := os.Args[3]
-	var upperLimit uint32 = 4294967295
+	//4294967295
+	var upperLimit uint32 = 127
 	//Compression
 	if operation == "c" {
 		/*
@@ -58,7 +59,7 @@ func main() {
 		var step uint32 = 0
 		output := make([]byte, 0)
 		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
-			symbolInterval, step, 0, upperLimit, output}
+			symbolInterval, step, 0, upperLimit, output, 0}
 		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder)
 	}
 }

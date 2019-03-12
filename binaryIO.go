@@ -51,6 +51,7 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 				arithmeticCoder.intervalCalculation(data)
 			}
 		} else if operation == "d" {
+			arithmeticDecoder.numberOfAllSymbols = uint32(fileSize)
 			arithmeticDecoder.readFreqTable(data)
 
 		}
@@ -118,5 +119,6 @@ func writeEncoded(arithmeticCoder *ArithmeticCoder) {
 		outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
 	}
 	fmt.Println("Written size", len(outputBytes))
+	fmt.Println(outputBytes[1024:])
 	writeBinaryFile("out", &outputBytes, 0)
 }
