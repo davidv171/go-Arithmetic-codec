@@ -12,6 +12,8 @@ type ArithmeticDecoder struct {
 		- high table is encoded in the file, low table is derived from the high table
 		- step,low,high : step, calculation helper used here for data retention
 		- output: the decoded byte array, decompressed file
+		- numberOfAllSymbols: number of all, even non-unique symbols of the encoded file
+		- currentInput: the field/array of bools, upon which we od operations on, next bit is taken out of inputBits
 	*/
 	inputBits          []bool
 	highTable          []uint32
@@ -22,6 +24,7 @@ type ArithmeticDecoder struct {
 	high               uint32
 	output             []byte
 	numberOfAllSymbols uint32
+	currentInput       []bool
 }
 
 //The first 256 32-bit bytes are our frequency table, or rather out HIGH table, containing the high value of each symbol
@@ -88,5 +91,32 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 		bitSlice = append(bitSlice, byteToBitSlice(uint32(currByte), 8)...)
 	}
 	arithmeticDecoder.inputBits = bitSlice
+
+}
+
+/*
+1. read probability table
+2. intialize the array of first N bits
+3. Decode on every iteration:
+	v = (field - low) / step
+	step = roundDown(high - low + 1) / n
+	high = low + step * high(simbol) - 1
+	low = low + step * low(simbol)
+4. Check for errors on each iteration:
+	while((mHigh < secondQuarter) || (mLow >= secondQuarter))
+		- E1: high < secondQuarter
+			- low = 2*low
+			- high = 2*high + 1
+			- field = 2 * field + next bit(0 or 1)
+		- E2: low >= 2ndQaurter
+			- low = 2*(low - 2ndQuarter)
+			- high = 2*(high - 2ndQuarter) + 1
+			- field = 2*(field - secondQuarter) + next bit
+		- E3: (low>=firstQuarter && high < thirdQuarter)
+			- low = 2*(low - firstQuarter)
+			- high = 2*(high - firstQuarter)+1
+			- field = 2*(field - 1stQuarter) + next bit
+*/
+func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 
 }
