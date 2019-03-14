@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /*
 1. Calculate the frequency table
 2. Calculate the symbol high table using that
@@ -41,6 +43,7 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 	//Keeps track where in the readByteSequence we've left off, for simpler indexing
 	lastIndex := 0
 	//Get each byte, increment its frequency
+	fmt.Println("FREQUENCY TALBE ")
 	for i := 0; i < len(data); i++ {
 		currentByte := data[i]
 		//If the current symbol we're looking at is not already present, means we have a unique symbol

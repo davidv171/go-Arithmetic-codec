@@ -15,7 +15,7 @@ func main() {
 	inputFile := os.Args[2]
 	outputFile := os.Args[3]
 	//4294967295
-	var upperLimit uint32 = 127
+	var upperLimit uint32 = 4294967295
 	quarters := make([]uint32, 4)
 	//Compression
 	if operation == "c" {
@@ -38,8 +38,8 @@ func main() {
 			0, 0, quarters, 0, outputBits}
 		quarters = arithmeticCoder.quarterize(upperLimit)
 		//The last argument is for the arithmetic decoder, whenever we are not decoding, it's nil
-		readBinaryFile(arithmeticCoder, inputFile, operation, true, nil)
-		readBinaryFile(arithmeticCoder, inputFile, operation, false, nil)
+		readBinaryFile(arithmeticCoder, inputFile, operation, true, nil, outputFile)
+		readBinaryFile(arithmeticCoder, inputFile, operation, false, nil, outputFile)
 		fmt.Print("Ouputting to... ", outputFile)
 		//Decomepression, read compressed file, deconstruct the symbols based off of it
 	} else if operation == "d" {
@@ -60,7 +60,7 @@ func main() {
 		currentInputBits := make([]bool, 0)
 		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
 			symbolInterval, 0, 0, upperLimit, output, 0,
-			currentInputBits, quarters, 7}
-		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder)
+			currentInputBits, quarters, 32}
+		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder, outputFile)
 	}
 }

@@ -95,8 +95,8 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 		bitSlice = append(bitSlice, byteToBitSlice(uint32(currByte), 8)...)
 	}
 	arithmeticDecoder.inputBits = bitSlice
-	//First 7 bits
-	arithmeticDecoder.currentInput = bitSlice[0:7]
+	//First 32 bits
+	arithmeticDecoder.currentInput = bitSlice[0:32]
 
 }
 
@@ -135,11 +135,13 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 		step := arithmeticDecoder.step
 		currentBits := arithmeticDecoder.currentInput
 		currentByte := arbitraryBitsToByte(&currentBits)
-		step = (high - low + 1) / numberOfAllSymbols
+		step = uint32((uint64(high) - uint64(low) + 1) / uint64(numberOfAllSymbols))
 		symbolInterval := (uint32(currentByte) - low) / step
 		//Calculate the symbol that relates to the symbolInterval
 		fmt.Println("CURRENT BYTE", currentByte, " Step ", step, " v ", symbolInterval, " high ", high, " low ", low)
 		symbol := arithmeticDecoder.intervalToSymbol(symbolInterval)
+		//Each decoded symbol is added to then be written into the file
+		arithmeticDecoder.output = append(arithmeticDecoder.output, symbol)
 		high = low + step*arithmeticDecoder.highTable[symbol] - 1
 		low = low + step*arithmeticDecoder.lowTable[symbol]
 		fmt.Println("Index ", index, " Field ", currentBits, " Step ", step, " v ", symbolInterval, " symbol: ", symbol, " high ", high, " low ", low)
@@ -150,6 +152,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 				low = 2 * low
 				high = 2*high + 1
 				//Turn bool into 0 or 1 then add it
+				//TODO: Turn it into a function
 				var add uint8 = 0
 				if inputBits[index] {
 					add = 1
@@ -190,7 +193,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 			index++
 
 		}
-		arithmeticDecoder.currentInput = byteToBitSlice(uint32(currentByte), 7)
+		arithmeticDecoder.currentInput = byteToBitSlice(uint32(currentByte), 32)
 		arithmeticDecoder.high = high
 		arithmeticDecoder.low = low
 		arithmeticDecoder.step = step

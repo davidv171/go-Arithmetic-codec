@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation string, modelCreation bool, arithmeticDecoder *ArithmeticDecoder) {
+func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation string, modelCreation bool, arithmeticDecoder *ArithmeticDecoder, outputFile string) {
 	file, err := os.Open(filepath)
 	defer file.Close()
 	fileInfo, err := file.Stat()
@@ -50,9 +50,12 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 				arithmeticCoder.frequencyTableGenerator(data)
 			} else {
 				arithmeticCoder.intervalCalculation(data)
+
 			}
 		} else if operation == "d" {
 			arithmeticDecoder.readFreqTable(data)
+			outputBytes := arithmeticDecoder.output
+			writeBinaryFile(outputFile, &outputBytes, 0)
 
 		}
 		bufferOverflow += bufferSize
@@ -63,7 +66,7 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	- else : output 10 and E3_COUNTER times bit 0
 	*/
 	if !modelCreation && arithmeticCoder != nil {
-		writeEncoded(arithmeticCoder)
+		writeEncoded(arithmeticCoder, outputFile)
 		//fmt.Println("The rest:")
 
 	}
@@ -81,7 +84,7 @@ func writeBinaryFile(fileName string, bytesToWrite *[]byte, bufferOverflow int64
 	errCheck(err)
 	os.Exit(0)
 }
-func writeEncoded(arithmeticCoder *ArithmeticCoder) {
+func writeEncoded(arithmeticCoder *ArithmeticCoder, fileName string) {
 	if arithmeticCoder.low < arithmeticCoder.quarters[0] {
 		arithmeticCoder.outputBits = append(arithmeticCoder.outputBits, false, true)
 		for i := 0; uint32(i) < arithmeticCoder.e3Counter; i++ {
@@ -111,5 +114,10 @@ func writeEncoded(arithmeticCoder *ArithmeticCoder) {
 		}
 
 	}
-	writeBinaryFile("out", &outputBytes, 0)
+	for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
+		tempSlice := arithmeticCoder.outputBits[i : i+8]
+		outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
+	}
+	fmt.Println("Output size ", len(outputBytes))
+	writeBinaryFile(fileName, &outputBytes, 0)
 }
