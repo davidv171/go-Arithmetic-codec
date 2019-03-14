@@ -95,6 +95,7 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 		bitSlice = append(bitSlice, byteToBitSlice(uint32(currByte), 8)...)
 	}
 	arithmeticDecoder.inputBits = bitSlice
+	printBoolsAsString(bitSlice)
 	//First 32 bits
 	arithmeticDecoder.currentInput = bitSlice[0:32]
 
@@ -136,15 +137,15 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 		currentBits := arithmeticDecoder.currentInput
 		currentByte := arbitraryBitsToByte(&currentBits)
 		step = uint32((uint64(high) - uint64(low) + 1) / uint64(numberOfAllSymbols))
-		symbolInterval := (uint32(currentByte) - low) / step
+		symbolInterval := (currentByte - low) / step
 		//Calculate the symbol that relates to the symbolInterval
-		fmt.Println("CURRENT BYTE", currentByte, " Step ", step, " v ", symbolInterval, " high ", high, " low ", low)
 		symbol := arithmeticDecoder.intervalToSymbol(symbolInterval)
 		//Each decoded symbol is added to then be written into the file
 		arithmeticDecoder.output = append(arithmeticDecoder.output, symbol)
 		high = low + step*arithmeticDecoder.highTable[symbol] - 1
 		low = low + step*arithmeticDecoder.lowTable[symbol]
-		fmt.Println("Index ", index, " Field ", currentBits, " Step ", step, " v ", symbolInterval, " symbol: ", symbol, " high ", high, " low ", low)
+		printBoolsAsString(currentBits)
+		fmt.Println(i, " INDEX ", index, " : ", symbol, " high ", high, " low ", low, " interval ", symbolInterval)
 		//Error intervals
 		for (high < quarters[1]) || low >= quarters[1] {
 			//E1
@@ -154,27 +155,29 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 				//Turn bool into 0 or 1 then add it
 				//TODO: Turn it into a function
 				var add uint8 = 0
-				if inputBits[index] {
-					add = 1
+				if index < uint32(len(inputBits)) {
+					if inputBits[index] {
+						add = 1
+					}
 				}
 				tempByte := currentByte
-				tempByte = 2*tempByte + add
+				tempByte = 2*tempByte + uint32(add)
 				currentByte = tempByte
-				fmt.Println("E1 ", tempByte, " added ", add)
 				index++
-				//E2
 
 			} else if low >= quarters[1] {
+				//E2
 				low = 2 * (low - quarters[1])
 				high = 2*(high-quarters[1]) + 1
 				var add uint8 = 0
-				if inputBits[index] {
-					add = 1
+				if index < uint32(len(inputBits)) {
+					if inputBits[index] {
+						add = 1
+					}
 				}
 				tempByte := currentByte
-				tempByte = uint8(2*(uint32(tempByte)-quarters[1]) + uint32(add))
+				tempByte = 2*(uint32(tempByte)-quarters[1]) + uint32(add)
 				currentByte = tempByte
-				fmt.Println("E2 ", tempByte, " added ", add)
 				index++
 			}
 
@@ -183,16 +186,18 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 			low = 2 * (low - quarters[0])
 			high = 2*(high-quarters[0]) + 1
 			var add uint8 = 0
-			if inputBits[index] {
-				add = 1
+			if index < uint32(len(inputBits)) {
+				if inputBits[index] {
+					add = 1
+				}
 			}
 			tempByte := currentByte
-			tempByte = uint8(2*(uint32(tempByte)-quarters[0]) + uint32(add))
+			tempByte = 2*(uint32(tempByte)-quarters[0]) + uint32(add)
 			currentByte = tempByte
-			fmt.Println("E3 ", tempByte, " added ", add)
 			index++
 
 		}
+
 		arithmeticDecoder.currentInput = byteToBitSlice(uint32(currentByte), 32)
 		arithmeticDecoder.high = high
 		arithmeticDecoder.low = low
@@ -203,7 +208,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 }
 
 //TODO: Cache the found symbol as it will be the same symbol look up a lot
-//Returns the symbol that is represented by an interval numbe
+//Returns the symbol that is represented by an interval number
 func (arithmeticDecoder *ArithmeticDecoder) intervalToSymbol(symbolInterval uint32) uint8 {
 	for i := 0; i < 256; i++ {
 		//If the interval is found anywhere
@@ -225,4 +230,14 @@ func (arithmeticDecoder *ArithmeticDecoder) quarterize(upperLimit uint32) []uint
 	arithmeticDecoder.quarters[3] = upperLimit
 	return arithmeticDecoder.quarters
 
+}
+func printBoolsAsString(bits []bool) {
+	for i := 0; i < len(bits); i++ {
+		if bits[i] {
+			fmt.Print("1")
+		} else {
+			fmt.Print("0")
+		}
+	}
+	fmt.Println("")
 }

@@ -57,6 +57,7 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 		arithmeticCoder.numberOfSymbols++
 		arithmeticCoder.frequencyTable[currentByte]++
 	}
+	fmt.Println(arithmeticCoder.frequencyTable)
 	arithmeticCoder.generateHighTable()
 }
 
@@ -80,6 +81,8 @@ func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
 
 		}
 	}
+	fmt.Println(arithmeticCoder.highTable)
+	fmt.Println(arithmeticCoder.lowTable)
 }
 
 //Takes a number and sets up quarters from it

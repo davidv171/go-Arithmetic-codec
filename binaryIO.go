@@ -15,11 +15,12 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	fmt.Print("File size is ")
 	fmt.Print(fileSize, "\n")
 	var bufferSize int64
-	bufferSize = 4096
 	//YOLO
 	if fileSize < bufferSize || operation == "d" {
 		bufferSize = fileSize
 	}
+	bufferSize = fileSize
+
 	var bufferOverflow int64 = 0
 	//Data where we put the read bytes into
 	data := make([]byte, bufferSize)
@@ -66,6 +67,7 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	- else : output 10 and E3_COUNTER times bit 0
 	*/
 	if !modelCreation && arithmeticCoder != nil {
+		fmt.Println((data))
 		writeEncoded(arithmeticCoder, outputFile)
 		//fmt.Println("The rest:")
 
@@ -117,6 +119,7 @@ func writeEncoded(arithmeticCoder *ArithmeticCoder, fileName string) {
 	for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
 		tempSlice := arithmeticCoder.outputBits[i : i+8]
 		outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
+
 	}
 	fmt.Println("Output size ", len(outputBytes))
 	writeBinaryFile(fileName, &outputBytes, 0)

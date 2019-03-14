@@ -22,7 +22,7 @@ func byteToBitSlice(bytes uint32, length uint8) []bool {
 	//Using an unsigned integer, so
 	//7 -> 0
 	for i = 0; i < length; i++ {
-		mask := uint8(1 << i)
+		mask := uint32(1 << i)
 		if (bytes & uint32(mask)) > 0 {
 			bits[(length-1)-i] = true
 		} else {
@@ -64,11 +64,11 @@ func sevenBitSliceToByte(bitSlice *[]bool, length uint8) []uint8 {
 	return resultingBytes
 }
 
-//Only for testing purposes, takes 7 bits at a time to generate a byte out of it
-func arbitraryBitsToByte(bitSlice *[]bool) uint8 {
-	var resultingByte uint8 = 0
+//takes 32 bits at a time to generate a byte out of it
+func arbitraryBitsToByte(bitSlice *[]bool) uint32 {
+	var resultingByte uint32 = 0
 	var i uint8 = 0
-	length := len((*bitSlice))
+	length := len(*bitSlice)
 	for i = 0; i < uint8(length); i++ {
 		if (*bitSlice)[i] {
 			resultingByte |= 1 << ((uint8(length - 1)) - i)
