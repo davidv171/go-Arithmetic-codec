@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 //Check a string and return its bool slice
 //FALSE = binary 0, TRUE = binary 1
 func argumentToBinary(argument string) []bool {
@@ -32,7 +30,6 @@ func byteToBitSlice(bytes uint32, length uint8) []bool {
 		}
 
 	}
-	fmt.Print(bits)
 	return bits
 }
 
@@ -45,6 +42,21 @@ func bitSliceToByte(bitSlice *[]bool, length uint8) []uint8 {
 		for j = 0; j < 8; j++ {
 			if (*bitSlice)[(i*8)+j] {
 				resultingBytes[i] |= 1 << (7 - j)
+			}
+		}
+	}
+
+	return resultingBytes
+}
+
+func sevenBitSliceToByte(bitSlice *[]bool, length uint8) []uint8 {
+	var i uint8 = 0
+	var j uint8 = 0
+	resultingBytes := make([]uint8, length)
+	for i = 0; i < length; i++ {
+		for j = 0; j < 7; j++ {
+			if (*bitSlice)[i+j] {
+				resultingBytes[i] |= 1 << (6 - j)
 			}
 		}
 	}

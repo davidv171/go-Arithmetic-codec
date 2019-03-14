@@ -81,7 +81,7 @@ func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
 
 //Takes a number and sets up quarters from it
 //An array of quarters is then used for algorithm calculation of border changes
-func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint32) {
+func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint32) []uint32 {
 	for i := 0; i < 3; i++ {
 		// turn to uint64 then back
 		upperLimitConverted := uint64(upperLimit)
@@ -89,6 +89,7 @@ func (arithmeticCoder *ArithmeticCoder) quarterize(upperLimit uint32) {
 	}
 	//2^32 or 2^32 - 1 shouldnt matter, we avoid a lot of conversion with it
 	arithmeticCoder.quarters[3] = upperLimit
+	return arithmeticCoder.quarters
 
 }
 

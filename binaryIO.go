@@ -111,14 +111,5 @@ func writeEncoded(arithmeticCoder *ArithmeticCoder) {
 		}
 
 	}
-	fmt.Println("\nHIGH TABLE SIZE", len(outputBytes))
-	//Turn the output bits into bytes
-	fmt.Println("END OF THING SIZE ", len(arithmeticCoder.outputBits))
-	for i := 0; i < len(arithmeticCoder.outputBits); i += 8 {
-		tempSlice := arithmeticCoder.outputBits[i : i+8]
-		outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
-	}
-	fmt.Println("Written size", len(outputBytes))
-	fmt.Println(outputBytes[1024:])
 	writeBinaryFile("out", &outputBytes, 0)
 }

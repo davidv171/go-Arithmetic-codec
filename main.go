@@ -16,6 +16,7 @@ func main() {
 	outputFile := os.Args[3]
 	//4294967295
 	var upperLimit uint32 = 127
+	quarters := make([]uint32, 4)
 	//Compression
 	if operation == "c" {
 		/*
@@ -26,7 +27,6 @@ func main() {
 		lowTable := make([]uint32, 256)
 		highTable := make([]uint32, 256)
 		readSequence := make([]uint8, 256)
-		quarters := make([]uint32, 4)
 		//A series of 0(false) and 1(true) that is then written into bytes and written into the binary compressed file
 		//TODO: turn this into output byte array
 		outputBits := make([]bool, 0)
@@ -36,7 +36,7 @@ func main() {
 		arithmeticCoder := &ArithmeticCoder{frequencyTable, highTable, lowTable,
 			readSequence, 0, upperLimit, 0, upperLimit,
 			0, 0, quarters, 0, outputBits}
-		arithmeticCoder.quarterize(upperLimit)
+		quarters = arithmeticCoder.quarterize(upperLimit)
 		//The last argument is for the arithmetic decoder, whenever we are not decoding, it's nil
 		readBinaryFile(arithmeticCoder, inputFile, operation, true, nil)
 		readBinaryFile(arithmeticCoder, inputFile, operation, false, nil)
@@ -59,7 +59,8 @@ func main() {
 		output := make([]byte, 0)
 		currentInputBits := make([]bool, 0)
 		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
-			symbolInterval, 0, 0, upperLimit, output, 0, currentInputBits}
+			symbolInterval, 0, 0, upperLimit, output, 0,
+			currentInputBits, quarters, 7}
 		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder)
 	}
 }
