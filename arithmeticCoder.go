@@ -64,7 +64,7 @@ func (arithmeticCoder *ArithmeticCoder) frequencyTableGenerator(data []uint8) {
 //Generate a table of highs for each symbol
 //Needs a helper array to keep track of which symbols appeared first in a left-to-right order
 func (arithmeticCoder *ArithmeticCoder) generateHighTable() {
-	var prevHigh uint32 = 0
+	prevHigh := uint32(0)
 	//Highest amount the iterator can reach is 255, which is the max amount of unique symbols
 	//To save a few iterations, we keep the number of unique symbols
 	var i uint8 = 0

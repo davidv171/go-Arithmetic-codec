@@ -16,11 +16,7 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	fmt.Print(fileSize, "\n")
 	var bufferSize int64
 	//YOLO
-	if fileSize < bufferSize || operation == "d" {
-		bufferSize = fileSize
-	}
 	bufferSize = fileSize
-
 	var bufferOverflow int64 = 0
 	//Data where we put the read bytes into
 	data := make([]byte, bufferSize)

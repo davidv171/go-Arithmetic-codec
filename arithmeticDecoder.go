@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -95,7 +94,6 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 		bitSlice = append(bitSlice, byteToBitSlice(uint32(currByte), 8)...)
 	}
 	arithmeticDecoder.inputBits = bitSlice
-	printBoolsAsString(bitSlice)
 	//First 32 bits
 	arithmeticDecoder.currentInput = bitSlice[0:32]
 
@@ -144,8 +142,6 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 		arithmeticDecoder.output = append(arithmeticDecoder.output, symbol)
 		high = low + step*arithmeticDecoder.highTable[symbol] - 1
 		low = low + step*arithmeticDecoder.lowTable[symbol]
-		printBoolsAsString(currentBits)
-		fmt.Println(i, " INDEX ", index, " : ", symbol, " high ", high, " low ", low, " interval ", symbolInterval)
 		//Error intervals
 		for (high < quarters[1]) || low >= quarters[1] {
 			//E1
@@ -230,14 +226,4 @@ func (arithmeticDecoder *ArithmeticDecoder) quarterize(upperLimit uint32) []uint
 	arithmeticDecoder.quarters[3] = upperLimit
 	return arithmeticDecoder.quarters
 
-}
-func printBoolsAsString(bits []bool) {
-	for i := 0; i < len(bits); i++ {
-		if bits[i] {
-			fmt.Print("1")
-		} else {
-			fmt.Print("0")
-		}
-	}
-	fmt.Println("")
 }
