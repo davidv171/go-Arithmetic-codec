@@ -133,10 +133,10 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				low = low * 2
 				high = high*2 + 1
 				var j uint32
-				//fmt.Print("0")
+				//OUTPUT: 0
 				outputBits = append(outputBits, false)
 				for j = 0; j < e3Counter; j++ {
-					//fmt.Print("1 ")
+					//OUTPUT: 1
 					outputBits = append(outputBits, true)
 				}
 				e3Counter = 0

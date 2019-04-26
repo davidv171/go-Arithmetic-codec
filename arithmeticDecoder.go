@@ -203,7 +203,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 
 }
 
-//TODO: Cache the found symbol as it will be the same symbol look up a lot
+//TODO: Cache the found symbol as it will be the same symbol look up a lot, or use a better lookup algorithm
 //Returns the symbol that is represented by an interval number
 func (arithmeticDecoder *ArithmeticDecoder) intervalToSymbol(symbolInterval uint32) uint8 {
 	for i := 0; i < 256; i++ {
