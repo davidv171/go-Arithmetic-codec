@@ -6,14 +6,15 @@ import (
 
 type ArithmeticDecoder struct {
 	/*
-		- inputBits : the bool array of input bits, that gets shifted for error calculations
-		- symbolInterval: is the calculated symbol interval, that falls between a symbol's high and low value in the model definition
-		- high table is encoded in the file, low table is derived from the high table
-		- step,low,high : step, calculation helper used here for data retention
-		- output: the decoded byte array, decompressed file
-		- numberOfAllSymbols: number of all, even non-unique symbols of the encoded file
-		- currentInput: the field/array of bools, upon which we od operations on, next bit is taken out of inputBits
-		- quarters: 4 sized array containing certain quarters used for error calculation
+		ArithmeticDecoder is our base struct for data persistence through iterations
+			- inputBits : the bool array of input bits, that gets shifted for error calculations
+			- symbolInterval: is the calculated symbol interval, that falls between a symbol's high and low value in the model definition
+			- high table is encoded in the file, low table is derived from the high table
+			- step,low,high : step, calculation helper used here for data retention
+			- output: the decoded byte array, decompressed file
+			- numberOfAllSymbols: number of all, even non-unique symbols of the encoded file
+			- currentInput: the field/array of bools, upon which we od operations on, next bit is taken out of inputBits
+			- quarters: 4 sized array containing certain quarters used for error calculation
 	*/
 	inputBits          []bool
 	highTable          []uint32
@@ -32,6 +33,7 @@ type ArithmeticDecoder struct {
 //The first 256 32-bit bytes are our frequency table, or rather out HIGH table, containing the high value of each symbol
 func (arithmeticDecoder *ArithmeticDecoder) readFreqTable(data []uint8) {
 	highTable := make([]uint32, 256)
+	lowTable := make([]uint32, 256)
 	for i := 4; i < 256*4; i += 4 {
 		readBytes := data[i-4 : i]
 		convertedInt := bytesToUint32(readBytes)
@@ -44,12 +46,17 @@ func (arithmeticDecoder *ArithmeticDecoder) readFreqTable(data []uint8) {
 	copy(sortedHighTable, highTable)
 	sort.Slice(sortedHighTable, func(i, j int) bool { return sortedHighTable[i] < sortedHighTable[j] })
 	//The largest high(last one in the sorted array) tells us how many non-unique symbols we have
+	//We can use this sorted thing later for binary searches!
 	arithmeticDecoder.numberOfAllSymbols = sortedHighTable[255]
 	arithmeticDecoder.step = (arithmeticDecoder.high + 1) / arithmeticDecoder.numberOfAllSymbols
 	arithmeticDecoder.generateLowTable(sortedHighTable)
+	sortedLowTable := make([]uint32, 256)
+	copy(sortedLowTable, lowTable)
+	sort.Slice(sortedLowTable, func(i, j int) bool { return sortedLowTable[i] < sortedLowTable[j] })
+	hmap := keep(lowTable, highTable)
 	arithmeticDecoder.initializeField(data)
 	arithmeticDecoder.quarterize(arithmeticDecoder.high)
-	arithmeticDecoder.intervalGeneration()
+	arithmeticDecoder.intervalGeneration(sortedHighTable, sortedLowTable, hmap)
 	//Sort the array so we can generate low table much easier
 }
 
@@ -96,7 +103,6 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 	arithmeticDecoder.inputBits = bitSlice
 	//First 32 bits
 	arithmeticDecoder.currentInput = bitSlice[0:32]
-
 }
 
 /*
@@ -122,7 +128,7 @@ func (arithmeticDecoder *ArithmeticDecoder) initializeField(data []uint8) {
 			- high = 2*(high - firstQuarter)+1
 			- field = 2*(field - 1stQuarter) + next bit
 */
-func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
+func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hsorted []uint32, lsorted []uint32, hmap map[uint32]int) {
 	quarters := arithmeticDecoder.quarters
 	numberOfAllSymbols := arithmeticDecoder.numberOfAllSymbols
 	//An index to keep track of getting the value of the next bit from input bits and adding it to the symbol
@@ -137,7 +143,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 		step = uint32((uint64(high) - uint64(low) + 1) / uint64(numberOfAllSymbols))
 		symbolInterval := (currentByte - low) / step
 		//Calculate the symbol that relates to the symbolInterval
-		symbol := arithmeticDecoder.intervalToSymbol(symbolInterval)
+		symbol := arithmeticDecoder.intervalToSymbol(symbolInterval, hmap, hsorted, lsorted)
 		//Each decoded symbol is added to then be written into the file
 		arithmeticDecoder.output = append(arithmeticDecoder.output, symbol)
 		high = low + step*arithmeticDecoder.highTable[symbol] - 1
@@ -205,14 +211,28 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration() {
 
 //TODO: Cache the found symbol as it will be the same symbol look up a lot, or use a better lookup algorithm
 //Returns the symbol that is represented by an interval number
-func (arithmeticDecoder *ArithmeticDecoder) intervalToSymbol(symbolInterval uint32) uint8 {
-	for i := 0; i < 256; i++ {
-		//If the interval is found anywhere
-		if arithmeticDecoder.highTable[i] > symbolInterval && arithmeticDecoder.lowTable[i] <= symbolInterval {
-			return uint8(i)
+func (arithmeticDecoder *ArithmeticDecoder) intervalToSymbol(symbolInterval uint32, hmap map[uint32]int, hsorted []uint32, lsorted []uint32) uint8 {
+	//Binary search
+	start := 0
+	end := len(lsorted) - 1
+	match := 0
+	for start <= end {
+		middle := (start + end) / 2
+		if symbolInterval >= lsorted[middle] && symbolInterval <= hsorted[middle] {
+			match = middle
+		}
+		if symbolInterval > hsorted[middle] {
+			start = middle + 1
+		}
+		if symbolInterval < lsorted[middle] {
+			end = middle - 1
 		}
 	}
-	return 0
+	//Used for later lookup(to get the index back)
+	hvalue := hsorted[match]
+	//Look up this value in the saved map(either is fine)
+	index := hmap[hvalue]
+	return uint8(index)
 }
 
 //In case we want to build without a coder
