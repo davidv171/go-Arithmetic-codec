@@ -63,7 +63,6 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	- else : output 10 and E3_COUNTER times bit 0
 	*/
 	if !modelCreation && arithmeticCoder != nil {
-		fmt.Println((data))
 		writeEncoded(arithmeticCoder, outputFile)
 		//fmt.Println("The rest:")
 

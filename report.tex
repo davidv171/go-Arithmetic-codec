@@ -1,0 +1,110 @@
+%-----------------------------------------------------------------------------------------
+% Determines the type of document and font size
+%-----------------------------------------------------------------------------------------
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{float} % here for H placement parameter
+
+%-----------------------------------------------------------------------------------------
+% Font control
+%-----------------------------------------------------------------------------------------
+\usepackage{mathptmx} % Hack
+%-----------------------------------------------------------------------------------------
+\usepackage{helvet} % Arial/Helvetica font
+\renewcommand{\familydefault}{\sfdefault} % Makes serif text all Helvetica
+%-----------------------------------------------------------------------------------------
+% Set up the page margins
+%-----------------------------------------------------------------------------------------
+\usepackage[left=2.5cm, right=2.5cm, top=2.5cm]{geometry} % Sets the page margins
+%-----------------------------------------------------------------------------------------
+% Allow graphics
+%-----------------------------------------------------------------------------------------
+\usepackage{graphicx}
+
+%-----------------------------------------------------------------------------------------
+% Add your report title here
+%-----------------------------------------------------------------------------------------
+\title{\huge{\textbf{Aritmetični kodirnik}}}
+
+% Add your name here
+\author{
+        David Vučković \\
+                Telekomunikacija 2.letnik\\
+        FERI\\
+        Univerza v Mariboru}
+\date{\today}
+
+%-----------------------------------------------------------------------------------------
+% The start of the document
+%-----------------------------------------------------------------------------------------
+\begin{document}
+
+%-----------------------------------------------------------------------------------------
+% This adds the title page
+%-----------------------------------------------------------------------------------------
+\maketitle
+\thispagestyle{empty}
+
+\clearpage % moves to the next page
+
+%-----------------------------------------------------------------------------------------
+% This adds the abstract
+%-----------------------------------------------------------------------------------------
+
+\thispagestyle{empty}
+
+%-----------------------------------------------------------------------------------------
+% Move to a new page and set the page numbering from here
+%-----------------------------------------------------------------------------------------
+\clearpage % moves to the next page
+\pagenumbering{arabic}
+
+\section{Tabela kompresije} % The start of a new section
+
+\begin{table}[H]
+\begin{tabular}{llll}
+    Datoteka     & Original & Kompresirana & Razmerje \\ \hline
+    alice30.txt  & 148,545 bytes                & 84,819 bytes          & 0.57099868726           \\
+    assassin.wav & 288,849 bytes                & 149,920 bytes         & 0.51902551159           \\
+    lena.bmp     & 2,169,254 bytes              & 1,890,195 bytes             & 0.87111822066           \\
+    lorem.txt    & 39,605 bytes                      & 21,405 bytes            & 0.54046206287           \\
+\end{tabular}
+\end{table}
+\section{Tabela  kompresijskih časov}
+\begin{table}[H]
+    \begin{tabular}{llll}
+    Datoteka     & Čas izvajanja \\ \hline
+    alice30.txt  & 0.03s              \\
+    assassin.wav & 0.049s                      \\
+    lena.bmp     & 0.502s              \\
+    lorem.txt    & 0.009                            \\
+    \end{tabular}
+\end{table}
+\section{Tabela dekompresijskih časov pred optimizacijo}
+\begin{table}[H]
+    \begin{tabular}{llll}
+    Datoteka     & Čas izvajanja \\ \hline
+    alice30.txt  & 0.287s              \\
+    assassin.wav & 0.293s                      \\
+    lena.bmp     & 1.995s              \\
+    lorem.txt    & 0.043                           \\
+    \end{tabular}
+\end{table}
+\section{Tabela verjetnosti}
+Tabela verjetnosti je polje velikosti 256, kjer index predstavlja simbol,
+vrednost na tistem indeksu pa predstavlja število pojavitev v tekstu. Torej če imamo tekst AAB, je na polju na indeksu 64(array[64]) vrednost 2.
+Vsak element je uint32.
+\section{Optimizacije in pohitritve}
+Pri branju iz datoteke za dekompresijo, ko pridobimo intervale, nam na klasičen način pretvarjanje intervala v simbol lahko vzame veliko časa, saj za vsak simbol iteriramo čez potencialno cel 256 elementno polje. Tukaj lahko implementiramo binarno iskanje.
+\section{Tabela optimizacije}
+
+\begin{table}[H]
+    \begin{tabular}{llll}
+    Datoteka     & Optimiziran čas(t2)     & Neoptimiziran čas(t2) & Faktor pohitritve(t1/t2) \\ \hline
+    alice30.txt  & 0.244s  & 0.287s        & 1.17s            \\
+    assassin.wav & 0.246s  & 0.293s        & 1.19s       \\
+    lena.bmp     & 1.897s  & 1.995s        & 1.05s           \\
+    lorem.txt    & 0.041s  & 0.043s        & 1.04s          \\
+    \end{tabular}
+\end{table}
+\end{document}

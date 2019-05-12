@@ -55,7 +55,7 @@ func main() {
 		inputBits := make([]bool, 0)
 		highTable := make([]uint32, 0)
 		lowTable := make([]uint32, 0)
-		var symbolInterval uint32 = 0
+		var symbolInterval uint32
 		output := make([]byte, 0)
 		currentInputBits := make([]bool, 0)
 		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
