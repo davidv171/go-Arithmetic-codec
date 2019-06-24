@@ -1,7 +1,5 @@
 package main
-
 /*
-ArithmeticCoder : steps
 1. Calculate the frequency table
 2. Calculate the symbol high table using that
 3. Initialize the algorithm with dividing the interval into 4 quarters
@@ -125,8 +123,8 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 		low = low + step*arithmeticCoder.lowTable[data[i]]
 		for (high < quarters[1]) || (low >= quarters[1]) {
 			if high < quarters[1] {
-				low = low + low
-				high = high + high + 1
+				low = low * 2
+				high = high*2 + 1
 				var j uint32
 				//OUTPUT: 0
 				outputBits = append(outputBits, false)
@@ -136,8 +134,8 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 				}
 				e3Counter = 0
 			} else if low >= quarters[1] {
-				low = (low - quarters[1]) + (low - quarters[1])
-				high = (high - quarters[1]) + (high - quarters[1]) + 1
+				low = 2 * (low - quarters[1])
+				high = 2*(high-quarters[1]) + 1
 				//fmt.Print("1")
 				outputBits = append(outputBits, true)
 				var j uint32
@@ -151,8 +149,8 @@ func (arithmeticCoder *ArithmeticCoder) intervalCalculation(data []uint8) {
 		}
 		for (quarters[0] <= low) && (high < quarters[2]) {
 			if low >= quarters[0] {
-				low = (low - quarters[0]) + (low - quarters[0])
-				high = (high - quarters[0]) + (high - quarters[0]) + 1
+				low = 2 * (low - quarters[0])
+				high = 2*(high-quarters[0]) + 1
 				e3Counter++
 			}
 		}

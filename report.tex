@@ -29,7 +29,7 @@
 % Add your name here
 \author{
         David Vučković \\
-                Telekomunikacija 2.letnik\\
+                Telekomunikacije 2.letnik MAG\\
         FERI\\
         Univerza v Mariboru}
 \date{\today}
@@ -74,20 +74,20 @@
 \begin{table}[H]
     \begin{tabular}{llll}
     Datoteka     & Čas izvajanja \\ \hline
-    alice30.txt  & 0.03s              \\
-    assassin.wav & 0.049s                      \\
-    lena.bmp     & 0.502s              \\
-    lorem.txt    & 0.009                            \\
+    alice30.txt  & 0.022s              \\
+    assassin.wav & 0.034s                      \\
+    lena.bmp     & 0.284s              \\
+    lorem.txt    & 0.007s                            \\
     \end{tabular}
 \end{table}
 \section{Tabela dekompresijskih časov pred optimizacijo}
 \begin{table}[H]
     \begin{tabular}{llll}
     Datoteka     & Čas izvajanja \\ \hline
-    alice30.txt  & 0.287s              \\
-    assassin.wav & 0.293s                      \\
-    lena.bmp     & 1.995s              \\
-    lorem.txt    & 0.043                           \\
+    alice30.txt  & 0.093s              \\
+    assassin.wav & 0.17s                      \\
+    lena.bmp     & 1.153s              \\
+    lorem.txt    & 0.027s                           \\
     \end{tabular}
 \end{table}
 \section{Tabela verjetnosti}
@@ -95,16 +95,18 @@ Tabela verjetnosti je polje velikosti 256, kjer index predstavlja simbol,
 vrednost na tistem indeksu pa predstavlja število pojavitev v tekstu. Torej če imamo tekst AAB, je na polju na indeksu 64(array[64]) vrednost 2.
 Vsak element je uint32.
 \section{Optimizacije in pohitritve}
-Pri branju iz datoteke za dekompresijo, ko pridobimo intervale, nam na klasičen način pretvarjanje intervala v simbol lahko vzame veliko časa, saj za vsak simbol iteriramo čez potencialno cel 256 elementno polje. Tukaj lahko implementiramo binarno iskanje. Kot enostavnejša optimizacija zamenjamo vse množitve z 2 s seštevanjem.
+Pri branju iz datoteke za dekompresijo, ko pridobimo intervale, nam na klasičen način pretvarjanje intervala v simbol lahko vzame veliko časa, saj za vsak simbol iteriramo čez potencialno cel 256 elementno polje. Tukaj lahko implementiramo binarno iskanje. Dodamo še caching prvih X elementov, ki so določeni s številom vseh znakov.
 \section{Tabela optimizacije}
+
+Vsa optimizacija se je opravljala v dekompresiji.
 
 \begin{table}[H]
     \begin{tabular}{llll}
     Datoteka     & Optimiziran čas(t2)     & Neoptimiziran čas(t1) & Faktor pohitritve(t1/t2) \\ \hline
-    alice30.txt  & 0.244s  & 0.287s        & 1.17            \\
-    assassin.wav & 0.246s  & 0.293s        & 1.19s       \\
-    lena.bmp     & 1.897s  & 1.995s        & 1.05s           \\
-    lorem.txt    & 0.041s  & 0.043s        & 1.04s          \\
+    alice30.txt  & 0.07s  & 0.093s        & 1.32            \\
+    assassin.wav & 0.12s  & 0.17s        & 1.41       \\
+    lena.bmp     & 1.03s  & 1.153s        & 1.11           \\
+    lorem.txt    & 0.023s  & 0.027s        & 1.17          \\
     \end{tabular}
 \end{table}
 \end{document}

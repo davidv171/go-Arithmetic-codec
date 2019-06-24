@@ -60,7 +60,7 @@ func main() {
 		currentInputBits := make([]bool, 0)
 		arithmeticDecoder := &ArithmeticDecoder{inputBits, highTable, lowTable,
 			symbolInterval, 0, 0, upperLimit, output, 0,
-			currentInputBits, quarters, 32}
+			currentInputBits, quarters, 32,nil,nil,nil,inputFile}
 		readBinaryFile(nil, inputFile, operation, false, arithmeticDecoder, outputFile)
 	}
 }

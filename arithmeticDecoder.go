@@ -27,6 +27,11 @@ type ArithmeticDecoder struct {
 	currentInput       []bool
 	quarters           []uint32
 	index              uint32
+	hsorted            []uint32
+	lsorted            []uint32
+	mostFreq           []uint32
+	//To recognize file types, some optimizations really only matter to .txt files
+	filename string
 }
 
 //The first 256 32-bit bytes are our frequency table, or rather out HIGH table, containing the high value of each symbol
@@ -40,20 +45,21 @@ func (arithmeticDecoder *ArithmeticDecoder) readFreqTable(data []uint8) {
 	}
 	arithmeticDecoder.highTable = highTable
 	//A temporary variable to avoid ovewriting
-	hsorted := make([]uint32, 256)
-	copy(hsorted, highTable)
-	sort.Slice(hsorted, func(i, j int) bool { return hsorted[i] < hsorted[j] })
+	arithmeticDecoder.hsorted = make([]uint32, 256)
+	copy(arithmeticDecoder.hsorted, highTable)
+	sort.Slice(arithmeticDecoder.hsorted, func(i, j int) bool { return arithmeticDecoder.hsorted[i] < arithmeticDecoder.hsorted[j] })
 	//The largest high(last one in the sorted array) tells us how many non-unique symbols we have
-	arithmeticDecoder.numberOfAllSymbols = hsorted[255]
+	arithmeticDecoder.numberOfAllSymbols = arithmeticDecoder.hsorted[255]
 	arithmeticDecoder.step = (arithmeticDecoder.high + 1) / arithmeticDecoder.numberOfAllSymbols
-	arithmeticDecoder.generateLowTable(hsorted)
-	lsorted := make([]uint32, 256)
-	copy(lsorted, arithmeticDecoder.lowTable)
-	sort.Slice(lsorted, func(i, j int) bool { return lsorted[i] < lsorted[j] })
+	arithmeticDecoder.generateLowTable(arithmeticDecoder.hsorted)
+	arithmeticDecoder.lsorted = make([]uint32, 256)
+	copy(arithmeticDecoder.lsorted, arithmeticDecoder.lowTable)
+	sort.Slice(arithmeticDecoder.lsorted, func(i, j int) bool { return arithmeticDecoder.lsorted[i] < arithmeticDecoder.lsorted[j] })
 	hmap := keep(highTable)
+	arithmeticDecoder.mostCommon()
 	arithmeticDecoder.initializeField(data)
 	arithmeticDecoder.quarterize(arithmeticDecoder.high)
-	arithmeticDecoder.intervalGeneration(hmap, lsorted, hsorted)
+	arithmeticDecoder.intervalGeneration(hmap, arithmeticDecoder.lsorted, arithmeticDecoder.hsorted)
 	//Sort the array so we can generate low table much easier
 }
 
@@ -167,8 +173,8 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hmap map[uint32]i
 
 			} else if low >= quarters[1] {
 				//E2
-				low = (low - quarters[1]) + (low - quarters[1])
-				high = (high - quarters[1]) + (high - quarters[1]) + 1
+				low = 2 * (low - quarters[1])
+				high = 2*(high-quarters[1]) + 1
 				var add uint8 = 0
 				if index < uint32(len(inputBits)) {
 					if inputBits[index] {
@@ -211,11 +217,17 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hmap map[uint32]i
 //Returns the symbol that is represented by an interval number
 func (arithmeticDecoder *ArithmeticDecoder) intervalToSymbol(symbolInterval uint32, hmap map[uint32]int,
 	lsorted []uint32, hsorted []uint32) uint8 {
-
+	//Check through our cached list first
 	//Binary search
 	start := 0
 	end := len(lsorted) - 1
 	match := 0
+	for i := range arithmeticDecoder.mostFreq {
+		if arithmeticDecoder.highTable[i] > symbolInterval && arithmeticDecoder.lowTable[i] <= symbolInterval {
+			return uint8(i)
+		}
+	}
+
 	//If the interval is 0, then we're looking for the first non-zero symbol, or the symbol with 0 low and non 0 high
 	for start <= end {
 		middle := (start + end) / 2
@@ -249,4 +261,18 @@ func (arithmeticDecoder *ArithmeticDecoder) quarterize(upperLimit uint32) []uint
 	arithmeticDecoder.quarters[3] = upperLimit
 	return arithmeticDecoder.quarters
 
+}
+
+//Get the list of indexes that are top 10 most common
+func (arithmeticDecoder *ArithmeticDecoder) mostCommon() {
+	nonZeroCounter := 0
+	for i := range arithmeticDecoder.highTable {
+		if arithmeticDecoder.hsorted[i] == 0 {
+			break
+		}
+		nonZeroCounter++
+		arithmeticDecoder.mostFreq[i] = arithmeticDecoder.hsorted[i] - arithmeticDecoder.lsorted[i]
+	}
+	nonZeroCounter = nonZeroCounter / 10
+	arithmeticDecoder.mostFreq = arithmeticDecoder.mostFreq[0:nonZeroCounter]
 }
