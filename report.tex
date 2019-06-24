@@ -95,13 +95,13 @@ Tabela verjetnosti je polje velikosti 256, kjer index predstavlja simbol,
 vrednost na tistem indeksu pa predstavlja število pojavitev v tekstu. Torej če imamo tekst AAB, je na polju na indeksu 64(array[64]) vrednost 2.
 Vsak element je uint32.
 \section{Optimizacije in pohitritve}
-Pri branju iz datoteke za dekompresijo, ko pridobimo intervale, nam na klasičen način pretvarjanje intervala v simbol lahko vzame veliko časa, saj za vsak simbol iteriramo čez potencialno cel 256 elementno polje. Tukaj lahko implementiramo binarno iskanje.
+Pri branju iz datoteke za dekompresijo, ko pridobimo intervale, nam na klasičen način pretvarjanje intervala v simbol lahko vzame veliko časa, saj za vsak simbol iteriramo čez potencialno cel 256 elementno polje. Tukaj lahko implementiramo binarno iskanje. Kot enostavnejša optimizacija zamenjamo vse množitve z 2 s seštevanjem.
 \section{Tabela optimizacije}
 
 \begin{table}[H]
     \begin{tabular}{llll}
-    Datoteka     & Optimiziran čas(t2)     & Neoptimiziran čas(t2) & Faktor pohitritve(t1/t2) \\ \hline
-    alice30.txt  & 0.244s  & 0.287s        & 1.17s            \\
+    Datoteka     & Optimiziran čas(t2)     & Neoptimiziran čas(t1) & Faktor pohitritve(t1/t2) \\ \hline
+    alice30.txt  & 0.244s  & 0.287s        & 1.17            \\
     assassin.wav & 0.246s  & 0.293s        & 1.19s       \\
     lena.bmp     & 1.897s  & 1.995s        & 1.05s           \\
     lorem.txt    & 0.041s  & 0.043s        & 1.04s          \\

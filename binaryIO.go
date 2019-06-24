@@ -12,14 +12,13 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 	fileInfo, err := file.Stat()
 	errCheck(err)
 	fileSize := fileInfo.Size()
-	fmt.Print("File size is ")
-	fmt.Print(fileSize, "\n")
 	var bufferSize int64
 	//YOLO
 	bufferSize = fileSize
 	var bufferOverflow int64 = 0
 	//Data where we put the read bytes into
 	data := make([]byte, bufferSize)
+
 	for {
 		//Loop through the file, retrieve the bytes as integers
 		//:cap(data) = capacity of array, how many elements it can take before it has to resize
@@ -30,8 +29,6 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 		readByte, err := file.Read(data)
 		if err != nil {
 			if err == io.EOF {
-				fmt.Print("\n")
-				fmt.Println("Done reading file")
 				break
 			}
 			fmt.Println(err)
@@ -45,6 +42,7 @@ func readBinaryFile(arithmeticCoder *ArithmeticCoder, filepath string, operation
 		if operation == "c" {
 			if modelCreation {
 				arithmeticCoder.frequencyTableGenerator(data)
+				fmt.Println("Uncompressed size: ", fileSize)
 			} else {
 				arithmeticCoder.intervalCalculation(data)
 
@@ -79,6 +77,10 @@ func writeBinaryFile(fileName string, bytesToWrite *[]byte, bufferOverflow int64
 	errCheck(err)
 	_, err = file.WriteAt(*bytesToWrite, bufferOverflow)
 	errCheck(err)
+	stat, err := file.Stat()
+	size := stat.Size()
+	errCheck(err)
+	fmt.Println("Written file: ", size)
 	os.Exit(0)
 }
 func writeEncoded(arithmeticCoder *ArithmeticCoder, fileName string) {
@@ -116,6 +118,5 @@ func writeEncoded(arithmeticCoder *ArithmeticCoder, fileName string) {
 		outputBytes = append(outputBytes, bitSliceToByte(&tempSlice, 1)[0])
 
 	}
-	fmt.Println("Output size ", len(outputBytes))
 	writeBinaryFile(fileName, &outputBytes, 0)
 }

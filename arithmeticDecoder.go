@@ -150,8 +150,8 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hmap map[uint32]i
 		for (high < quarters[1]) || low >= quarters[1] {
 			//E1
 			if high < quarters[1] {
-				low = 2 * low
-				high = 2*high + 1
+				low = low + low
+				high = high + high + 1
 				//Turn bool into 0 or 1 then add it
 				//TODO: Turn it into a function
 				var add uint8 = 0
@@ -161,14 +161,14 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hmap map[uint32]i
 					}
 				}
 				tempByte := currentByte
-				tempByte = 2*tempByte + uint32(add)
+				tempByte = tempByte + tempByte + uint32(add)
 				currentByte = tempByte
 				index++
 
 			} else if low >= quarters[1] {
 				//E2
-				low = 2 * (low - quarters[1])
-				high = 2*(high-quarters[1]) + 1
+				low = (low - quarters[1]) + (low - quarters[1])
+				high = (high - quarters[1]) + (high - quarters[1]) + 1
 				var add uint8 = 0
 				if index < uint32(len(inputBits)) {
 					if inputBits[index] {
@@ -176,7 +176,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hmap map[uint32]i
 					}
 				}
 				tempByte := currentByte
-				tempByte = 2*(uint32(tempByte)-quarters[1]) + uint32(add)
+				tempByte = uint32(tempByte) - quarters[1] + (uint32(tempByte) - quarters[1]) + uint32(add)
 				currentByte = tempByte
 				index++
 			}
@@ -192,7 +192,7 @@ func (arithmeticDecoder *ArithmeticDecoder) intervalGeneration(hmap map[uint32]i
 				}
 			}
 			tempByte := currentByte
-			tempByte = 2*(uint32(tempByte)-quarters[0]) + uint32(add)
+			tempByte = (uint32(tempByte) - quarters[0]) + (uint32(tempByte) - quarters[0]) + uint32(add)
 			currentByte = tempByte
 			index++
 
